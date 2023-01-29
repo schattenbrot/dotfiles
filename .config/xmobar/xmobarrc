@@ -1,0 +1,43 @@
+Config { font = "xft:FiraCode Nerd Font:weight=bold:pixelsize=24:antialias=true:hinting:true"
+       , additionalFonts = [ "xft:FontAwesome:pixelsize=20" ]
+       , borderColor = "black"
+       , border = TopB
+       , bgColor = "black"
+       , fgColor = "#ffbbff"
+       , alpha = 230
+       , position = TopP 0 175
+       , textOffset = -1
+       , iconOffset = -1
+       , lowerOnStart = True
+       , pickBroadest = False
+       , persistent = False
+       , hideOnStart = False
+       , iconRoot = "." -- "/home/ellychan/.xmonad/xpm/" -- default: "."
+       , allDesktops = True
+       , overrideRedirect = True
+       , commands = [ Run Network "wlan0" ["-L","0","-H","10000",
+                                          "--normal","green","--high","red"] 10
+                    , Run Volume "default" "Master" [
+                                                    "--template", "<volume>%"
+                                                    , "-L", "0"
+                                                    , "-l", "red"
+                                                    ] 10
+                    , Run Cpu ["-L","3","-H","50",
+                               "--normal","green","--high","red"] 10
+                    , Run Memory ["-t","Mem: <usedratio>%"] 10
+                    , Run Swap [] 10
+                    , Run Date "%a %b %_d %Y %H:%M" "date" 500
+                    , Run BatteryP ["BAT0"]
+                                   [
+                                   "--template", "<acstatus>"
+                                   , "-L", "15", "-H", "80"
+                                   , "-l", "red", "-h", "#bbbbff"
+                                   , "--", "-O", "Charging <leftvbar>", "-o", "Battery: <left>% / <timeleft>"
+                                   ] 10
+            		    , Run StdinReader
+                    ]
+
+       , sepChar = "%"
+       , alignSep = "}{"
+       , template = "%StdinReader%}<fc=#ffbbff>           %date%</fc>{%battery% <fc=#88ffff>| Volume: %default:Master%</fc> <fc=#ffbbff>| %wlan0%</fc> <fc=#ffffbb>| %cpu%</fc> <fc=#bbffbb>| %memory%</fc>"
+       }
