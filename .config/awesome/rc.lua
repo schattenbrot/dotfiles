@@ -323,7 +323,9 @@ globalkeys = gears.table.join(
     { description = "decrease monitor brightness", group = "launcher" }),
   awful.key({}, "XF86MonBrightnessUp", function() awful.spawn("/user/bin/xbacklight -inc 10") end,
     { description = "decrease monitor brightness", group = "launcher" }),
-  awful.key({}, "Print", function() awful.spawn(screenshot) end,
+  awful.key({}, "Print", function() awful.spawn.with_shell(screenshot) end,
+    { description = "make screenshot", group = "launcher" }),
+  awful.key({ modkey, "Shift" }, "s", function() awful.spawn.with_shell(screenshot) end,
     { description = "make screenshot", group = "launcher" }),
 
   awful.key({ modkey, "Control" }, "n",
