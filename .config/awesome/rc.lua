@@ -250,8 +250,6 @@ globalkeys = gears.table.join(
     end,
     { description = "focus previous by index", group = "client" }
   ),
-  -- awful.key({ modkey, }, "w", function() mymainmenu:show() end,
-  -- { description = "show main menu", group = "awesome" }),
 
   -- Layout manipulation
   awful.key({ modkey, "Shift" }, "j", function() awful.client.swap.byidx(1) end,
@@ -300,19 +298,20 @@ globalkeys = gears.table.join(
     { description = "increase the number of columns", group = "layout" }),
   awful.key({ modkey, "Control" }, "l", function() awful.tag.incncol(-1, nil, true) end,
     { description = "decrease the number of columns", group = "layout" }),
-  awful.key({ modkey, }, "space", function() awful.layout.inc(1) end,
-    { description = "select next", group = "layout" }),
-  awful.key({ modkey, "Shift" }, "space", function() awful.layout.inc(-1) end,
-    { description = "select previous", group = "layout" }),
+  -- awful.key({ modkey, }, "space", function() awful.layout.inc(1) end,
+  --{ description = "select next", group = "layout" }),
 
   -- Screen and media control
   awful.key({ modkey, "Shift" }, "F11",
-    function() awful.spawn("xrandr --output DP3 --mode 2560x1440 --pos 3456x0xrandr --output DP3 --mode 2560x1440 --pos 3456x0") end
-    ,
-    { description = "enable second monitor", group = "launcher" }),
+    function()
+      awful.spawn("xrandr --output DP3 --off")
+      awful.spawn("feh --bg-scale /home/ellychan/Pictures/konpaku_youmu.jpg")
+    end, { description = "single monitor", group = "launcher" }),
   awful.key({ modkey, "Shift" }, "F12",
-    function() awful.spawn("feh --bg-scale /home/ellychan/Pictures/konpaku_youmu.jpg") end,
-    { description = "fix background", group = "launcher" }),
+    function()
+      awful.spawn("xrandr --output DP3 --mode 2560x1440 --pos 3456x0")
+      awful.spawn("feh --bg-scale /home/ellychan/Pictures/konpaku_youmu.jpg")
+    end, { description = "dual monitors", group = "launcher" }),
   awful.key({}, "XF86AudioMute", function() awful.spawn("amixer -D pulse set Master toggle") end,
     { description = "mute audio", group = "launcher" }),
   awful.key({}, "XF86AudioRaiseVolume", function() awful.spawn("amixer -q sset Master 5%+") end,
@@ -380,10 +379,9 @@ clientkeys = gears.table.join(
       c.minimized = true
     end,
     { description = "minimize", group = "client" }),
-  awful.key({ modkey, }, "m",
+  awful.key({ modkey, }, "space",
     function(c)
       c.maximized = not c.maximized
-      --for _, cls in ipairs(client.get()) do
       for _, cls in ipairs(mouse.screen.selected_tag:clients()) do
         -- minimize all windows except the focused one
         if c.window ~= cls.window then
@@ -532,17 +530,10 @@ client.connect_signal("manage", function(c)
   end
 end)
 
--- Enable sloppy focus, so that focus follows mouse.
--- client.connect_signal("mouse::enter", function(c)
---  c:emit_signal("request::activate", "mouse_enter", { raise = false })
--- end)
-
 client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 -- }}}
 
--- Gaps
--- beautiful.useless_gap = 5
 
 -- Autostart applications
 awful.spawn.with_shell("picom -CGb")
