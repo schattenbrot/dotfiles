@@ -39,7 +39,7 @@ nvim_lsp.sumneko_lua.setup {
     Lua = {
       diagnostics = {
         -- Get the language server to recognize the 'vim' global
-        globals = { 'vim' }
+        globals = { 'vim', 'awesome' }
       },
       workspace = {
         -- Make the server aware of Neovim runtime files
