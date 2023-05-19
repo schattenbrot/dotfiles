@@ -1,11 +1,11 @@
-Config { font = "xft:FiraCode Nerd Font:weight=bold:pixelsize=24:antialias=true:hinting:true"
-       , additionalFonts = [ "xft:FontAwesome:pixelsize=20" ]
+Config { font = "xft:FiraCode Nerd Font-bold-18"
+       , additionalFonts = [ "xft:FontAwesome-20" ]
        , borderColor = "black"
        , border = TopB
        , bgColor = "black"
        , fgColor = "#ffbbff"
        , alpha = 230
-       , position = TopP 0 175
+       , position = Static { xpos = 0, ypos = 0, width = 3216, height = 48 }
        , textOffset = -1
        , iconOffset = -1
        , lowerOnStart = True
@@ -39,5 +39,5 @@ Config { font = "xft:FiraCode Nerd Font:weight=bold:pixelsize=24:antialias=true:
 
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%StdinReader%}<fc=#ffbbff>           %date%</fc>{%battery% <fc=#88ffff>| Volume: %default:Master%</fc> <fc=#ffbbff>| %wlan0%</fc> <fc=#ffffbb>| %cpu%</fc> <fc=#bbffbb>| %memory%</fc>"
+       , template = "%StdinReader%}<fc=#ffbbff>           %date%</fc>{%battery% <fc=#88ffff>| Volume: %default:Master%</fc> <fc=#ffbbff>| %wlan0%</fc> <fc=#ffffbb>| %cpu%</fc> <fc=#bbffbb>| %memory%</fc> "
        }

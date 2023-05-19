@@ -1,13 +1,15 @@
-local g = vim.g
-g.tokyonight_style = "night"
-g.tokyonight_transparent = true
-g.tokyonight_italic_functions = true
-g.tokyonight_italic_comments = true
-
-g.tokyonight_colors = {
-  hint = 'orange',
-  error = '#ff0000'
-}
+require("tokyonight").setup({
+  style = "night",
+  transparent = true,
+  styles = {
+    comments = { italic = true },
+    functions = { italic = true }
+  },
+  on_colors = function(colors)
+    colors.hint = colors.orange
+    colors.error = '#ff0000'
+  end
+})
 
 vim.cmd [[colorscheme tokyonight]]
 

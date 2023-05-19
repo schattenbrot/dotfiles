@@ -1,6 +1,11 @@
 local status, nvim_lsp = pcall(require, 'lspconfig')
 if (not status) then return end
 
+require("mason").setup()
+require("mason-lspconfig").setup({
+  ensure_installed = { "lua_ls", "pyright" }
+})
+
 local protocol = require('vim.lsp.protocol')
 
 local on_attach = function(client, bufnr)
@@ -25,6 +30,12 @@ end
 --  end
 --end
 
+-- Python
+nvim_lsp.pyright.setup {
+  on_attach = on_attach,
+  filetypes = { "python" }
+}
+
 -- TypeScript
 nvim_lsp.tsserver.setup {
   on_attach = on_attach,
@@ -33,7 +44,8 @@ nvim_lsp.tsserver.setup {
 }
 
 -- Lua
-nvim_lsp.sumneko_lua.setup {
+nvim_lsp.lua_ls.setup {
+  --nvim_lsp.sumneko_lua.setup {
   on_attach = on_attach,
   settings = {
     Lua = {

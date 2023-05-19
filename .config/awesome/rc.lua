@@ -7,6 +7,7 @@ local gears = require("gears")
 local awful = require("awful")
 require("awful.autofocus")
 require("collision")()
+local sharedtags = require("sharedtags")
 -- Widget and layout library
 local wibox = require("wibox")
 -- Theme handling library
@@ -23,9 +24,11 @@ require("awful.hotkeys_popup.keys")
 -- Check if awesome encountered an error during startup and fell back to
 -- another config (This code will only ever execute for the fallback config)
 if awesome.startup_errors then
-  naughty.notify({ preset = naughty.config.presets.critical,
+  naughty.notify({
+    preset = naughty.config.presets.critical,
     title = "Oops, there were errors during startup!",
-    text = awesome.startup_errors })
+    text = awesome.startup_errors
+  })
 end
 
 -- Handle runtime errors after startup
@@ -36,9 +39,11 @@ do
     if in_error then return end
     in_error = true
 
-    naughty.notify({ preset = naughty.config.presets.critical,
+    naughty.notify({
+      preset = naughty.config.presets.critical,
       title = "Oops, an error happened!",
-      text = tostring(err) })
+      text = tostring(err)
+    })
     in_error = false
   end)
 end
@@ -88,16 +93,17 @@ awful.layout.layouts = {
 -- {{{ Menu
 -- Create a launcher widget and a main menu
 local myawesomemenu = {
-  { "hotkeys", function() hotkeys_popup.show_help(nil, awful.screen.focused()) end },
-  { "manual", terminal .. " -e man awesome" },
+  { "hotkeys",     function() hotkeys_popup.show_help(nil, awful.screen.focused()) end },
+  { "manual",      terminal .. " -e man awesome" },
   { "edit config", editor_cmd .. " " .. awesome.conffile },
-  { "restart", awesome.restart },
-  { "quit", function() awesome.quit() end },
+  { "restart",     awesome.restart },
+  { "quit",        function() awesome.quit() end },
 }
 
-local mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
-  { "open terminal", terminal }
-}
+local mymainmenu = awful.menu({
+  items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
+    { "open terminal", terminal }
+  }
 })
 
 -- Menubar configuration
@@ -163,12 +169,24 @@ end
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
 screen.connect_signal("property::geometry", set_wallpaper)
 
+local tags = sharedtags({
+  { name = "code", layout = awful.layout.layouts[1] },
+  { name = "www",  layout = awful.layout.layouts[1] },
+  { name = "api",  layout = awful.layout.layouts[1] },
+  { name = "db",   layout = awful.layout.layouts[1] },
+  { name = "5",    layout = awful.layout.layouts[1] },
+  { name = "6",    layout = awful.layout.layouts[1] },
+  { name = "7",    layout = awful.layout.layouts[1] },
+  { name = "mail", layout = awful.layout.layouts[1] },
+  { name = "chat", layout = awful.layout.layouts[1] },
+})
+
 awful.screen.connect_for_each_screen(function(s)
   -- Wallpaper
-  set_wallpaper(s)
 
   -- Each screen has its own tag table.
-  awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
+  --awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
+
 
   -- Create a promptbox for each screen
   s.mypromptbox = awful.widget.prompt()
@@ -202,13 +220,15 @@ awful.screen.connect_for_each_screen(function(s)
   -- Add widgets to the wibox
   s.mywibox:setup {
     layout = wibox.layout.align.horizontal,
-    { -- Left widgets
+    {
+      -- Left widgets
       layout = wibox.layout.fixed.horizontal,
       s.mytaglist,
       s.mypromptbox,
     },
     s.mytasklist, -- Middle widget
-    { -- Right widgets
+    {
+      -- Right widgets
       layout = wibox.layout.fixed.horizontal,
       --wibox.widget.systray(),
       s.systray,
@@ -285,7 +305,6 @@ globalkeys = gears.table.join(
     { description = "reload awesome", group = "awesome" }),
   awful.key({ modkey, "Shift" }, "q", awesome.quit,
     { description = "quit awesome", group = "awesome" }),
-
   awful.key({ modkey, }, "l", function() awful.tag.incmwfact(0.05) end,
     { description = "increase master width factor", group = "layout" }),
   awful.key({ modkey, }, "h", function() awful.tag.incmwfact(-0.05) end,
@@ -398,9 +417,13 @@ for i = 1, 9 do
     awful.key({ modkey }, "#" .. i + 9,
       function()
         local screen = awful.screen.focused()
-        local tag = screen.tags[i]
+        local tag = tags[i]
+        --local tag = screen.tags[i]
         if tag then
-          tag:view_only()
+          --tag:view_only()
+          sharedtags.viewonly(tag, screen)
+          --sharedtags.movetag(tag, screen)
+          --sharedtags.jumpto(tag)
         end
       end,
       { description = "view tag #" .. i, group = "tag" }),
@@ -408,9 +431,11 @@ for i = 1, 9 do
     awful.key({ modkey, "Control" }, "#" .. i + 9,
       function()
         local screen = awful.screen.focused()
-        local tag = screen.tags[i]
+        --local tag = screen.tags[i]
+        local tag = tags[i]
         if tag then
-          awful.tag.viewtoggle(tag)
+          --awful.tag.viewtoggle(tag)
+          sharedtags.viewtoggle(tag, screen)
         end
       end,
       { description = "toggle tag #" .. i, group = "tag" }),
@@ -418,7 +443,8 @@ for i = 1, 9 do
     awful.key({ modkey, "Shift" }, "#" .. i + 9,
       function()
         if client.focus then
-          local tag = client.focus.screen.tags[i]
+          --local tag = client.focus.screen.tags[i]
+          local tag = tags[i]
           if tag then
             client.focus:move_to_tag(tag)
           end
@@ -429,7 +455,7 @@ for i = 1, 9 do
     awful.key({ modkey, "Control", "Shift" }, "#" .. i + 9,
       function()
         if client.focus then
-          local tag = client.focus.screen.tags[i]
+          local tag = tags[i]
           if tag then
             client.focus:toggle_tag(tag)
           end
@@ -461,8 +487,10 @@ root.keys(globalkeys)
 -- Rules to apply to new clients (through the "manage" signal).
 awful.rules.rules = {
   -- All clients will match this rule.
-  { rule = {},
-    properties = { border_width = beautiful.border_width,
+  {
+    rule = {},
+    properties = {
+      border_width = beautiful.border_width,
       border_color = beautiful.border_normal,
       focus = awful.client.focus.filter,
       raise = true,
@@ -474,36 +502,38 @@ awful.rules.rules = {
   },
 
   -- Floating clients.
-  { rule_any = {
-    instance = {
-      "DTA", -- Firefox addon DownThemAll.
-      "copyq", -- Includes session name in class.
-      "pinentry",
+  {
+    rule_any = {
+      instance = {
+        "DTA",   -- Firefox addon DownThemAll.
+        "copyq", -- Includes session name in class.
+        "pinentry",
+      },
+      class = {
+        "Arandr",
+        "Blueman-manager",
+        "Gpick",
+        "Kruler",
+        "MessageWin",  -- kalarm.
+        "Sxiv",
+        "Tor Browser", -- Needs a fixed window size to avoid fingerprinting by screen size.
+        "Wpa_gui",
+        "veromix",
+        "xtightvncviewer"
+      },
+      -- Note that the name property shown in xprop might be set slightly after creation of the client
+      -- and the name shown there might not match defined rules here.
+      name = {
+        "Event Tester", -- xev.
+      },
+      role = {
+        "AlarmWindow",   -- Thunderbird's calendar.
+        "ConfigManager", -- Thunderbird's about:config.
+        "pop-up",        -- e.g. Google Chrome's (detached) Developer Tools.
+      }
     },
-    class = {
-      "Arandr",
-      "Blueman-manager",
-      "Gpick",
-      "Kruler",
-      "MessageWin", -- kalarm.
-      "Sxiv",
-      "Tor Browser", -- Needs a fixed window size to avoid fingerprinting by screen size.
-      "Wpa_gui",
-      "veromix",
-      "xtightvncviewer"
-    },
-
-    -- Note that the name property shown in xprop might be set slightly after creation of the client
-    -- and the name shown there might not match defined rules here.
-    name = {
-      "Event Tester", -- xev.
-    },
-    role = {
-      "AlarmWindow", -- Thunderbird's calendar.
-      "ConfigManager", -- Thunderbird's about:config.
-      "pop-up", -- e.g. Google Chrome's (detached) Developer Tools.
-    }
-  }, properties = { floating = true } },
+    properties = { floating = true }
+  },
 
   -- Set Firefox to always map on the tag named "2" on screen 1.
   -- { rule = { class = "Firefox" },

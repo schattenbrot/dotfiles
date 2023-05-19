@@ -3,6 +3,7 @@
 ---------------------------------------------------------------------------- 
 
 -- BASELINE
+import Graphics.X11.ExtraTypes.XF86
 import Control.Monad (liftM2)
 import XMonad
 import Data.Monoid
@@ -22,6 +23,7 @@ import XMonad.Layout.PerWorkspace
 
 -- HOOKS
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.ManageHelpers (isFullscreen, doFullFloat)
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.DynamicLog (xmobarPP
                                , ppOutput
@@ -67,8 +69,14 @@ myClickJustFocuses = True
 -- A tagging example:
 --
 myWorkspaces = ["dev", "web", "sys" ] ++ map show [4..9]
---
--- myWorkspaces    = ["1","2","3","4","5","6","7","8","9"]
+
+---------------------------------------------------------------------------- 
+-- PROGRAMS
+---------------------------------------------------------------------------- 
+spawnOneScreenSetup = "xrandr --output DP3 --off"
+spawnTwoScreenSetup = "xrandr --output DP3 --mode 2560x1440 --pos 3456x0"
+spawnBackground = "feh --bg-scale /home/ellychan/Pictures/konpaku_youmu.jpg"
+spawnScreenshot = "flameshot gui"
 
 ---------------------------------------------------------------------------- 
 -- COLORS
@@ -98,11 +106,11 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_d     ), spawn "rofi -modi drun -show drun -config ~/.config/rofi/rofidmenu.rasi") -- launch dmenu
     , ((modm,               xK_w     ), spawnOn "web" "firefox") -- launch firefox
     , ((modm,               xK_n     ), spawn "thunar") -- launch thunar
-    , ((modm .|. shiftMask, xK_s     ), spawn "flameshot gui")
-    , ((modm, xK_c     ), kill) -- close focused window
+    , ((modm .|. shiftMask, xK_s     ), spawn spawnScreenshot)
+    , ((modm .|. shiftMask, xK_c     ), kill) -- close focused window
     --, ((modm .|. shiftMask, 0xffc8   ), spawn "xrandr --output DP3 --scale 1x1 --mode 2560x1440 --pos 3456x0 --scale 1.5x1.5")
-    , ((modm .|. shiftMask, 0xffc8   ), spawn "xrandr --output DP3 --mode 2560x1440 --pos 3456x0")
-    , ((modm .|. shiftMask, 0xffc9   ), spawn "feh --bg-scale /home/ellychan/Pictures/konpaku_youmu.jpg" )
+    , ((modm .|. shiftMask, xK_F11), spawn (spawnOneScreenSetup ++ " && " ++ spawnBackground))
+    , ((modm .|. shiftMask, xK_F12), spawn (spawnTwoScreenSetup ++ " && " ++ spawnBackground))
 
     -- layout stuff
     , ((modm,               xK_space ), sendMessage NextLayout) -- Rotate through the available layout algorithms
@@ -127,32 +135,24 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Deincrement the number of windows in the master area
     , ((modm              , xK_period), sendMessage (IncMasterN (-1)))
 
-    -- Toggle the status bar gap
-    -- Use this binding with avoidStruts from Hooks.ManageDocks.
-    -- See also the statusBar function from Hooks.DynamicLog.
-    --
-    -- , ((modm              , xK_b     ), sendMessage ToggleStruts)
-
-    -- Quit xmonad
+    -- Quit or Restart xmonad
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
-
-    -- Restart xmonad
     , ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
 
     -- Run xmessage with a summary of the default keybindings (useful for beginners)
     , ((modm .|. shiftMask, xK_slash ), spawn ("echo \"" ++ help ++ "\" | xmessage -file -"))
 
     -- Media Keys
-    , ((0, 0x1008ff12), spawn "amixer -D pulse set Master toggle")
-    , ((0, 0x1008ff11), spawn "amixer -q sset Master 5%-")
-    , ((0, 0x1008ff13), spawn "amixer -q sset Master 5%+") -- "<XF86AudioRaiseVolume>"
+    , ((0, xF86XK_AudioMute), spawn "amixer -D pulse set Master toggle")
+    , ((0, xF86XK_AudioLowerVolume), spawn "amixer -q sset Master 5%-")
+    , ((0, xF86XK_AudioRaiseVolume), spawn "amixer -q sset Master 5%+") -- "<XF86AudioRaiseVolume>"
 
     -- Brightness control
-    , ((0, 0x1008ff02), spawn "/usr/bin/xbacklight -inc 10")
-    , ((0, 0x1008ff03), spawn "/usr/bin/xbacklight -dec 10")
+    , ((0, xF86XK_MonBrightnessUp), spawn "/usr/bin/xbacklight -inc 10") --0x1008ff02
+    , ((0, xF86XK_MonBrightnessDown), spawn "/usr/bin/xbacklight -dec 10") -- 0x1008ff03
 
     -- Print screenshot
-    , ((0, 0xff61), spawn "scrot") -- "<Print>"
+    , ((0, xK_Print), spawn spawnScreenshot) -- "<Print>" xF86XK_ScreenSaver 0xff61
 
     ]
     ++
@@ -205,7 +205,8 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 -- which denotes layout choice.
 --
 -- myLayout = onWorkspace "web" (noBorders Full) $ spacing 6 $ avoidStruts(gaps [(U,12), (R,12), (D, 12), (L, 12)] $ tiled ||| Mirror tiled ||| Full)
-myLayout = onWorkspace "web" (noBorders Full) $ avoidStruts(tiled  ||| Full)
+--myLayout = onWorkspace "web" (noBorders Full) $ avoidStruts(tiled  ||| Full)
+myLayout = smartBorders $ avoidStruts(tiled ||| Full)
   where
      -- default tiling algorithm partitions the screen into two panes
      tiled   = Tall nmaster delta ratio
@@ -268,11 +269,11 @@ myEventHook =  handleEventHook def
 --
 -- By default, do nothing.
 myStartupHook = do
-    -- spawnOnce "picom -CGb"
-    -- spawnOnce "feh --bg-scale /home/ellychan/Pictures/konpaku_youmu.jpg"
+    spawnOnce "feh --bg-scale /home/ellychan/Pictures/konpaku_youmu.jpg"
     --spawnOnce "xrandr --output DP3 --scale 1x1 --mode 2560x1440 --pos 3456x0 --scale 1.5x1.5"
-    -- spawnOnce "stalonetray"
-    --spawnOnce "nm-applet"
+    spawnOnce "sleep 1 && picom -CGb"
+    spawnOnce "stalonetray"
+    spawnOnce "nm-applet"
 
 ------------------------------------------------------------------------
 -- Now run xmonad with all the defaults we set up.
@@ -282,7 +283,6 @@ myStartupHook = do
 --defaults = def {
 main = do
   xmproc0 <- spawnPipe "xmobar -x 0 /home/ellychan/.config/xmobar/xmobarrc"
-  -- xmproc1 <- spawnPipe "xmobar -x 1 /home/ellychan/.config/xmobar/xmobarrc"
   xmonad $ ewmhFullscreen $ docks def {
       -- simple stuff
         terminal           = myTerminal,
