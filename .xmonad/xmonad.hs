@@ -89,7 +89,6 @@ myFocusedBorderColor :: String
 myFocusedBorderColor = "#ffbbff"
 
 -- xmobar colors
---colorAccentGreen = "#bbffdd"
 colorAccentPurple = "#bbbbff"
 colorAccentBlue = "#88ffff"
 colorAccentPink = "#ffbbff"
@@ -119,21 +118,16 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_b     ), refresh) -- Resize viewed windows to the correct size
     , ((modm,               xK_h     ), sendMessage Shrink) -- Shrink the master area
     , ((modm,               xK_l     ), sendMessage Expand) -- Expand the master area
+    , ((modm              , xK_comma ), sendMessage (IncMasterN 1)) -- Increment the number of windows in the master area
+    , ((modm              , xK_period), sendMessage (IncMasterN (-1))) -- Deincrement the number of windows in the master area
 
     -- Move focus
-    , ((modm,               xK_Tab   ), windows W.focusDown)
     , ((modm,               xK_j     ), windows W.focusDown)
     , ((modm,               xK_k     ), windows W.focusUp  )
-    , ((modm,               xK_m     ), windows W.focusMaster  ) -- Move focus to the master window
-    , ((modm .|. shiftMask,               xK_Return), windows W.swapMaster) -- Swap the focused window and the master window
+    , ((modm,               xK_m     ), windows W.focusMaster) -- Move focus to the master window
+    , ((modm .|. shiftMask, xK_Return), windows W.swapMaster) -- Swap the focused window and the master window
     , ((modm .|. shiftMask, xK_j     ), windows W.swapDown  ) -- Swap the focused window with the next window
     , ((modm .|. shiftMask, xK_k     ), windows W.swapUp    ) -- Swap the focused window with the previous window
-
-    -- Increment the number of windows in the master area
-    , ((modm              , xK_comma ), sendMessage (IncMasterN 1))
-
-    -- Deincrement the number of windows in the master area
-    , ((modm              , xK_period), sendMessage (IncMasterN (-1)))
 
     -- Quit or Restart xmonad
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
@@ -170,8 +164,8 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- mod-{t,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
     -- mod-shift-{t,e,r}, Move client to screen 1, 2, or 3
     --
-    [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
-         | (key, sc) <- zip [xK_e, xK_r] [0..]
+    [((m .|. modm .|. controlMask, key), screenWorkspace sc >>= flip whenJust (windows . f))
+         | (key, sc) <- zip [xK_k, xK_j] [0..]
          , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 ------------------------------------------------------------------------
