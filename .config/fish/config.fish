@@ -24,8 +24,9 @@ alias cls='clear'
 alias g='git'
 alias gdot='/usr/bin/git --git-dir=$HOME/dotfiles --work-tree=$HOME'
 
-# vim
+# shorten
 alias v='vim'
+alias k='kubectl'
 
 # paru
 alias uwu='paru --bottomup'
@@ -50,4 +51,5 @@ end
 
 fish_add_path $HOME/go/bin
 fish_add_path $HOME/Dev/unix-block-course/bin
+export CAPACITOR_ANDROID_STUDIO_PATH=/usr/bin/android-studio
 setxkbmap eu

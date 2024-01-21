@@ -14,6 +14,7 @@ import XMonad.Actions.SpawnOn
 import XMonad.Util.Run
 import XMonad.Util.SpawnOnce
 import XMonad.Util.EZConfig(additionalKeys)
+import XMonad.Util.NamedScratchpad
 
 -- LAYOUT
 import XMonad.Layout.Gaps
@@ -22,6 +23,8 @@ import XMonad.Layout.NoBorders
 import XMonad.Layout.PerWorkspace
 
 -- HOOKS
+import XMonad.ManageHook
+import XMonad.Hooks.DynamicProperty
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers (isFullscreen, doFullFloat)
 import XMonad.Hooks.SetWMName
@@ -73,10 +76,33 @@ myWorkspaces = ["dev", "web", "sys" ] ++ map show [4..9]
 ---------------------------------------------------------------------------- 
 -- PROGRAMS
 ---------------------------------------------------------------------------- 
-spawnOneScreenSetup = "xrandr --output DP3 --off"
-spawnTwoScreenSetup = "xrandr --output DP3 --mode 2560x1440 --pos 3456x0"
+spawnOneScreenSetup = "xrandr --output DP2 --off"
+spawnTwoScreenSetup = "xrandr --output DP2 --mode 2560x1440 --pos 3456x0"
 spawnBackground = "feh --bg-scale /home/ellychan/Pictures/konpaku_youmu.jpg"
 spawnScreenshot = "flameshot gui"
+spawnBrowser = "brave"
+
+---------------------------------------------------------------------------- 
+-- SCRATCHPAD
+---------------------------------------------------------------------------- 
+
+htopScratchpad = NS "htop" spawner finder layout
+    where
+    spawner = "kitty -e htop"
+    finder = title =? "htop"
+    layout = customFloating $ W.RationalRect (1/6) (1/6) (4/6) (4/6)
+spotifyScratchpad = NS "spotify" spawner finder layout
+    where
+    spawner = "spotify"
+    finder = className =? "Spotify"
+    layout = customFloating $ W.RationalRect (1/10) (1/10) (8/10) (8/10)
+onepasswordScratchpad = NS "1password" spawner finder layout
+    where
+    spawner = "1password"
+    finder = className =? "1Password"
+    layout = customFloating $ W.RationalRect (1/10) (1/10) (8/10) (8/10)
+
+scratchpads = [htopScratchpad, spotifyScratchpad, onepasswordScratchpad]
 
 ---------------------------------------------------------------------------- 
 -- COLORS
@@ -103,13 +129,20 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     --launch and close stuff
     [ ((modm, xK_Return), spawn $ XMonad.terminal conf) -- launch a terminal
     , ((modm,               xK_d     ), spawn "rofi -modi drun -show drun -config ~/.config/rofi/rofidmenu.rasi") -- launch dmenu
-    , ((modm,               xK_w     ), spawnOn "web" "firefox") -- launch firefox
+    , ((modm,               xK_w     ), spawnOn "web" spawnBrowser)
     , ((modm,               xK_n     ), spawn "thunar") -- launch thunar
     , ((modm .|. shiftMask, xK_s     ), spawn spawnScreenshot)
     , ((modm .|. shiftMask, xK_c     ), kill) -- close focused window
     --, ((modm .|. shiftMask, 0xffc8   ), spawn "xrandr --output DP3 --scale 1x1 --mode 2560x1440 --pos 3456x0 --scale 1.5x1.5")
     , ((modm .|. shiftMask, xK_F11), spawn (spawnOneScreenSetup ++ " && " ++ spawnBackground))
     , ((modm .|. shiftMask, xK_F12), spawn (spawnTwoScreenSetup ++ " && " ++ spawnBackground))
+
+    -- scratchpads
+    , ((modm .|. controlMask, xK_l), namedScratchpadAction scratchpads "htop")
+    , ((modm .|. controlMask, xK_u), namedScratchpadAction scratchpads "spotify")
+    , ((modm .|. controlMask, xK_y), namedScratchpadAction scratchpads "1password")
+    --, ((modm .|. controlMask .|. shiftMask, xK_s), namedScratchpadAction scratchpads "stardict")
+    --, ((modm .|. controlMask .|. shiftMask, xK_n), namedScratchpadAction scratchpads "notes")
 
     -- layout stuff
     , ((modm,               xK_space ), sendMessage NextLayout) -- Rotate through the available layout algorithms
@@ -233,7 +266,7 @@ myManageHook = composeAll
     , className =? "discord"        --> viewShift "9"
     , resource  =? "desktop_window" --> doIgnore
     , resource  =? "kdesktop"       --> doIgnore ]
-  where viewShift = doF . liftM2 (.) W.greedyView W.shift
+    where viewShift = doF . liftM2 (.) W.greedyView W.shift
 
 ------------------------------------------------------------------------
 -- Event handling
@@ -244,7 +277,10 @@ myManageHook = composeAll
 -- combine event hooks use mappend or mconcat from Data.Monoid.
 --
 --myEventHook = docksEventHook <+> handleEventHook def <+> fullscreenEventHook 
-myEventHook =  handleEventHook def
+myHandleEventHook = dynamicPropertyChange "WM_NAME" (title =? "htop" --> floating)
+    where
+    floating = customFloating $ W.RationalRect (1/6) (1/6) (4/6) (4/6)
+--myHandleEventHook =  handleEventHook def
 
 ------------------------------------------------------------------------
 -- Status bars and logging
@@ -265,7 +301,7 @@ myEventHook =  handleEventHook def
 myStartupHook = do
     spawnOnce "feh --bg-scale /home/ellychan/Pictures/konpaku_youmu.jpg"
     --spawnOnce "xrandr --output DP3 --scale 1x1 --mode 2560x1440 --pos 3456x0 --scale 1.5x1.5"
-    spawnOnce "sleep 1 && picom -CGb"
+    --spawnOnce "sleep 2 && picom -CGb"
     spawnOnce "stalonetray"
     spawnOnce "nm-applet"
 
@@ -294,9 +330,10 @@ main = do
 
       -- hooks, layouts
         layoutHook         = myLayout,
-        manageHook         = manageSpawn <+> myManageHook,
+        manageHook         = manageSpawn <+> myManageHook <+> namedScratchpadManageHook scratchpads,
         startupHook        = myStartupHook >> setWMName "LG3D",
-        handleEventHook    = handleEventHook def,
+        --handleEventHook    = myEventHandleHook <+> handleEventHook def,
+        handleEventHook    = myHandleEventHook,
         --logHook            = dynamicLogWithPP $ def { ppOutput = \x -> hPutStrLn xmproc0 x }
         logHook            = dynamicLogWithPP xmobarPP { ppOutput = \x -> hPutStrLn xmproc0 x
                                                     , ppCurrent = xmobarColor colorAccentPink "" . wrap "[" "]"

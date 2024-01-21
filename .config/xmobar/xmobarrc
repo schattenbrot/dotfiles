@@ -32,7 +32,7 @@ Config { font = "xft:FiraCode Nerd Font-bold-18"
                                    "--template", "<acstatus>"
                                    , "-L", "15", "-H", "80"
                                    , "-l", "red", "-h", "#bbbbff"
-                                   , "--", "-O", "Charging <leftvbar>", "-o", "Battery: <left>% / <timeleft>"
+                                   , "--", "-O", "Charging <left>% <leftvbar>", "-o", "Battery: <left>% / <timeleft>"
                                    ] 10
             		    , Run StdinReader
                     ]
